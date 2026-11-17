@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/Components/auth/AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 import { useState, type MouseEvent } from "react";
 
 const links = [
