@@ -1,28 +1,70 @@
+
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import Field from "./Field";
+import { useAuth } from "@/Components/auth/AuthContext";
 
 export default function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  const { login } = useAuth();
+  const router = useRouter();
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     const data = new FormData(e.currentTarget);
     const email = String(data.get("email") ?? "").trim();
     const password = String(data.get("password") ?? "");
 
     const next: Record<string, string> = {};
-    if (!/^\S+@\S+\.\S+$/.test(email)) next.email = "Enter a valid email address.";
-    if (!password) next.password = "Enter your password.";
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      next.email = "Enter a valid email address.";
+    }
+
+    if (!password) {
+      next.password = "Enter your password.";
+    }
+
     setErrors(next);
+
     if (Object.keys(next).length > 0) return;
 
     setLoading(true);
+
     try {
-      // TODO: call your auth API here
+      const loggedInUser = await login(email, password);
+
+      if (
+            loggedInUser.role === "ADMIN" ||
+            loggedInUser.role === "SUPER_ADMIN"
+          ) {
+              router.push("/admin");
+            } else {
+                const params = new URLSearchParams(window.location.search);
+                const nextPath = params.get("next");
+
+                const safeNextPath =
+                  nextPath &&
+                  nextPath.startsWith("/") &&
+                  !nextPath.startsWith("//")
+                   ? nextPath
+                    : "/";
+
+                router.push(safeNextPath);
+            }
+    }catch (err) {
+      setErrors({
+        form:
+          err instanceof Error
+            ? err.message
+            : "Login failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -30,17 +72,44 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      <Field label="Email" name="email" type="email" autoComplete="email"
-        placeholder="you@example.com" error={errors.email} />
-      <Field label="Password" name="password" type="password"
-        autoComplete="current-password" placeholder="Your password" error={errors.password} />
+      <Field
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        placeholder="you@example.com"
+        error={errors.email}
+      />
+
+      <Field
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        placeholder="Your password"
+        error={errors.password}
+      />
+
+      {errors.form && (
+        <p className="text-sm text-red-500" role="alert">
+          {errors.form}
+        </p>
+      )}
 
       <div className="flex items-center justify-between text-sm">
         <label className="flex items-center gap-2 text-muted">
-          <input type="checkbox" name="remember" className="accent-primary" />
+          <input
+            type="checkbox"
+            name="remember"
+            className="accent-primary"
+          />
           Remember me
         </label>
-        <Link href="/forgot-password" className="font-medium text-primary hover:underline">
+
+        <Link
+          href="/forgot-password"
+          className="font-medium text-primary hover:underline"
+        >
           Forgot password?
         </Link>
       </div>
@@ -55,7 +124,10 @@ export default function LoginForm() {
 
       <p className="text-center text-sm text-muted">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-primary hover:underline">
+        <Link
+          href="/signup"
+          className="font-medium text-primary hover:underline"
+        >
           Sign up
         </Link>
       </p>

@@ -9,22 +9,31 @@ import Field from "./Field";
 export default function SignupForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, login } = useAuth();
     const router = useRouter();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const name = String(data.get("name") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim().toLowerCase();
     const password = String(data.get("password") ?? "");
     const confirm = String(data.get("confirm") ?? "");
     const terms = data.get("terms") === "on";
 
     const next: Record<string, string> = {};
-    if (!name) next.name = "Enter your full name.";
-    if (!/^\S+@\S+\.\S+$/.test(email)) next.email = "Enter a valid email address.";
-    if (password.length < 8) next.password = "Use at least 8 characters.";
+    if (name.length < 2) {
+      next.name = "Name must be at least 2 characters.";
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      next.email = "Enter a valid email address.";
+    }
+
+    if (password.length < 8 || password.length > 72) {
+      next.password = "Password must be 8 to 72 characters.";
+    }
+    
     if (confirm !== password) next.confirm = "Passwords do not match.";
     if (!terms) next.terms = "You need to accept the terms to continue.";
     setErrors(next);
@@ -32,15 +41,19 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      await signup(name, email, password);
-      router.push("/");
-} catch (err) {
-     setErrors({
-        form:
-        err instanceof Error 
-        ? err.message : "Could not sign up. Please try again.",
-    });
- } finally {
+       await signup(name, email, password);
+
+        // Automatically log in after successful signup
+        await login(email, password);
+
+        router.replace("/");
+      } catch (err) {
+          setErrors({
+            form:
+            err instanceof Error 
+            ? err.message : "Could not sign up. Please try again.",
+          });
+    } finally {
       setLoading(false);
     }
   }
@@ -65,6 +78,11 @@ export default function SignupForm() {
           <p role="alert" className="text-sm text-red-600">{errors.terms}</p>
         )}
       </div>
+      {errors.form && (
+        <p role="alert" className="text-sm text-red-500">
+          {errors.form}
+        </p>
+      )}
 
       <button
         type="submit"
