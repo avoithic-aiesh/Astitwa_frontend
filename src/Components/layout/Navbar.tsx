@@ -1,9 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/Components/auth/AuthContext";
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -12,6 +13,12 @@ const links = [
 ];
 
 export default function Navbar() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
@@ -21,39 +28,56 @@ export default function Navbar() {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
   }
 
-function handleNavClick(e: MouseEvent<HTMLAnchorElement>, href: string) {
-  if (pathname !== "/") return; // on other pages, let the link navigate normally
+  function handleNavClick(
+    e: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) {
+    if (pathname !== "/") return;
 
-  if (href === "/#about") {
-    e.preventDefault();
-    document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
-    window.history.replaceState(null, "", "/#about");
-  } else if (href === "/") {
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    window.history.replaceState(null, "", "/");
+    if (href === "/#about") {
+      e.preventDefault();
+      document.getElementById("about")?.scrollIntoView({
+        behavior: "smooth",
+      });
+      window.history.replaceState(null, "", "/#about");
+    } else if (href === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.history.replaceState(null, "", "/");
+    }
   }
-}
 
   async function handleLogout() {
     await logout();
     router.push("/");
   }
 
+  const roleLinks =
+    user?.role === "MEMBER"
+      ? [...links, { href: "/my-events", label: "My Events" }]
+      : user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
+        ? [...links, { href: "/admin", label: "Admin Dashboard" }]
+        : links;
+
   return (
     <header className="flex items-center justify-between gap-8 border-b border-border bg-surface px-8 py-4">
-      <Link href="/" className="shrink-0 text-2xl font-extrabold uppercase tracking-[0.25em] text-primary">
+      <Link
+        href="/"
+        className="shrink-0 text-2xl font-extrabold uppercase tracking-[0.25em] text-primary"
+      >
         EVENTRA<span className="text-secondary">.</span>
       </Link>
 
       <nav className="flex gap-6" aria-label="Main navigation">
-        {links.map((link) => (
+        {roleLinks.map((link) => (
           <Link
-           onClick={(e) => handleNavClick(e, link.href)}
+            onClick={(e) => handleNavClick(e, link.href)}
             key={link.href}
             href={link.href}
             className={`text-sm transition-colors hover:text-primary ${
-              isActive(link.href) ? "font-semibold text-primary" : "text-muted"
+              isActive(link.href)
+                ? "font-semibold text-primary"
+                : "text-muted"
             }`}
           >
             {link.label}
@@ -67,18 +91,26 @@ function handleNavClick(e: MouseEvent<HTMLAnchorElement>, href: string) {
           aria-label="Search"
           className="whitespace-nowrap rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-white"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
             <circle cx="11" cy="11" r="7" />
             <line x1="16.5" y1="16.5" x2="21" y2="21" />
           </svg>
         </button>
 
-        {loading ? null : user ? (
+        {!mounted || loading ? null : user ? (
           <>
             <span className="text-sm text-muted">
-              Hi, {user.name.split(" ")[0]}
+              Hi, {user.fullName?.split(" ")[0] ?? "User"}
             </span>
+
             <button
               type="button"
               onClick={handleLogout}
@@ -95,6 +127,7 @@ function handleNavClick(e: MouseEvent<HTMLAnchorElement>, href: string) {
             >
               Login
             </Link>
+
             <Link
               href="/signup"
               className="whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
