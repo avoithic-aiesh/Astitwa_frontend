@@ -24,6 +24,7 @@ export type Event = {
   startsAt: string;
   endsAt: string;
   capacity: number;
+  registeredCount?: number;
   status: EventStatus;
   createdBy?: string | null;
   createdAt?: string;
