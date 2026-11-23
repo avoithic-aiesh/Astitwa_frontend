@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { useAuth } from "@/Components/auth/AuthContext";
-import { getMyRegistrations } from "@/lib/events";
+import {
+  getMyRegistrations,
+  cancelRegistration,
+} from "@/lib/events";
 import { formatDateTime } from "@/lib/format";
 
 import type { Registration } from "@/lib/types";
@@ -21,6 +24,14 @@ export default function MyEventsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  async function loadRegistrations() {
+    setError("");
+
+    const data = await getMyRegistrations();
+    setRegistrations(data);
+  }
 
   useEffect(() => {
     if (authLoading) return;
@@ -32,7 +43,7 @@ export default function MyEventsPage() {
 
     let active = true;
 
-    async function loadRegistrations() {
+    async function load() {
       setLoading(true);
       setError("");
 
@@ -57,12 +68,36 @@ export default function MyEventsPage() {
       }
     }
 
-    void loadRegistrations();
+    void load();
 
     return () => {
       active = false;
     };
   }, [user, authLoading]);
+
+  async function handleCancel(registration: Registration) {
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel your registration for "${registration.event.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    setCancellingId(registration.event.id);
+    setError("");
+
+    try {
+      await cancelRegistration(registration.event.id);
+      await loadRegistrations();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to cancel your registration."
+      );
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   if (authLoading || loading) {
     return (
@@ -95,33 +130,91 @@ export default function MyEventsPage() {
     );
   }
 
-  if (user.role !== "MEMBER") {
-    return (
-      <PageContainer>
-        <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-foreground">
-            My Events
-          </h1>
+  const now = Date.now();
 
-          <p className="mt-3 text-muted">
-            This page is available to members only.
+  const upcomingEvents = registrations
+    .filter(
+      (registration) =>
+        new Date(registration.event.endsAt).getTime() > now
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.event.startsAt).getTime() -
+        new Date(b.event.startsAt).getTime()
+    );
+
+  const pastEvents = registrations
+    .filter(
+      (registration) =>
+        new Date(registration.event.endsAt).getTime() <= now
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.event.startsAt).getTime() -
+        new Date(a.event.startsAt).getTime()
+    );
+
+  function renderRegistration(registration: Registration, isUpcoming: boolean) {
+    const event = registration.event;
+    const isCancelling = cancellingId === event.id;
+
+    return (
+      <article
+        key={registration.id}
+        className="flex h-full flex-col rounded-xl border border-border bg-surface p-5 shadow-sm"
+      >
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <h3 className="text-lg font-bold text-foreground">
+            {event.title}
+          </h3>
+
+          <StatusBadge status={event.status} />
+        </div>
+
+        <div className="flex flex-1 flex-col gap-3 text-sm text-muted">
+          <p>
+            <span className="font-medium text-foreground">Venue:</span>{" "}
+            {event.venue}
+          </p>
+
+          <p>
+            <span className="font-medium text-foreground">Starts:</span>{" "}
+            {formatDateTime(event.startsAt)}
+          </p>
+
+          <p>
+            <span className="font-medium text-foreground">Ends:</span>{" "}
+            {formatDateTime(event.endsAt)}
+          </p>
+
+          <p>
+            <span className="font-medium text-foreground">
+              Registered on:
+            </span>{" "}
+            {formatDateTime(registration.registeredAt)}
           </p>
         </div>
-      </PageContainer>
-    );
-  }
 
-  if (error) {
-    return (
-      <PageContainer>
-        <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-foreground">
-            Unable to load your events
-          </h1>
+        <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-border pt-4">
+          <Link
+            href={`/events/${event.id}`}
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            View event details →
+          </Link>
 
-          <p className="mt-3 text-muted">{error}</p>
+          {isUpcoming && (
+            <button
+              type="button"
+              onClick={() => handleCancel(registration)}
+              disabled={isCancelling}
+              className="text-sm font-medium text-red-700 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isCancelling ? "Cancelling..." : "Cancel registration"}
+            </button>
+          )}
         </div>
-      </PageContainer>
+      </article>
     );
   }
 
@@ -137,61 +230,68 @@ export default function MyEventsPage() {
         </p>
       </div>
 
-      {registrations.length === 0 ? (
-        <EmptyState
-          title="No registered events yet"
-          message="You haven't registered for any events. Explore upcoming events and find something interesting to attend."
-        />
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {registrations.map((registration) => (
-            <article
-              key={registration.id}
-              className="flex h-full flex-col rounded-xl border border-border bg-surface p-5 shadow-sm"
-            >
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <h2 className="text-lg font-bold text-foreground">
-                  {registration.event.title}
-                </h2>
-
-                <StatusBadge status={registration.event.status} />
-              </div>
-
-              <div className="flex flex-1 flex-col gap-3 text-sm text-muted">
-                <p>
-                  <span className="font-medium text-foreground">
-                    Venue:
-                  </span>{" "}
-                  {registration.event.venue}
-                </p>
-
-                <p>
-                  <span className="font-medium text-foreground">
-                    Starts:
-                  </span>{" "}
-                  {formatDateTime(registration.event.startsAt)}
-                </p>
-
-                <p>
-                  <span className="font-medium text-foreground">
-                    Registered on:
-                  </span>{" "}
-                  {formatDateTime(registration.registeredAt)}
-                </p>
-              </div>
-
-              <div className="mt-5 border-t border-border pt-4">
-                <Link
-                  href={`/events/${registration.event.id}`}
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  View event details →
-                </Link>
-              </div>
-            </article>
-          ))}
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
         </div>
       )}
+
+      <section className="mb-12">
+        <div className="mb-5">
+          <h2 className="text-2xl font-bold text-foreground">
+            Upcoming Events
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Events that have not ended yet.
+          </p>
+        </div>
+
+        {upcomingEvents.length === 0 ? (
+          <EmptyState
+            title="No upcoming events"
+            message="You don't have any upcoming registered events. Browse events to find something interesting."
+          />
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {upcomingEvents.map((registration) =>
+              renderRegistration(registration, true)
+            )}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="mb-5">
+          <h2 className="text-2xl font-bold text-foreground">
+            Past Events
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Events that have already ended.
+          </p>
+        </div>
+
+        {pastEvents.length === 0 ? (
+          <EmptyState
+            title="No past events"
+            message="Your completed events will appear here."
+          />
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pastEvents.map((registration) =>
+              renderRegistration(registration, false)
+            )}
+          </div>
+        )}
+      </section>
+
+      <div className="mt-8">
+        <Link
+          href="/events"
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          Browse all events →
+        </Link>
+      </div>
     </PageContainer>
   );
 }

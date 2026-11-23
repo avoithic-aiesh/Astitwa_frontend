@@ -30,26 +30,35 @@ export default function EventDetailsClient({ id }: Props) {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationCheckFailed, setRegistrationCheckFailed] = useState(false);
+
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const loadDetails = useCallback(async () => {
     setLoading(true);
     setError("");
+    setRegistrationCheckFailed(false);
 
     try {
       const eventData = await getEvent(id);
       setEvent(eventData);
 
-      if (user?.role === "MEMBER") {
-        const registrations = await getMyRegistrations();
+      if (user) {
+        try {
+          const registrations = await getMyRegistrations();
 
-        setIsRegistered(
-          registrations.some(
-            (registration) => registration.event.id === eventData.id
-          )
-        );
+          setIsRegistered(
+            registrations.some(
+              (registration) => registration.event.id === eventData.id
+            )
+          );
+        } catch {
+          setRegistrationCheckFailed(true);
+        }
       } else {
         setIsRegistered(false);
       }
@@ -62,7 +71,7 @@ export default function EventDetailsClient({ id }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [id, user?.role]);
+  }, [id, user]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -71,19 +80,22 @@ export default function EventDetailsClient({ id }: Props) {
   }, [authLoading, loadDetails]);
 
   async function handleRegistration() {
-    if (!event) return;
+    if (!event || !user || registrationCheckFailed) return;
 
     setActionLoading(true);
     setActionError("");
+    setSuccessMessage("");
 
     try {
       if (isRegistered) {
         await cancelRegistration(event.id);
+        setIsRegistered(false);
+        setSuccessMessage("Your registration has been cancelled successfully.");
       } else {
         await registerForEvent(event.id);
+        setIsRegistered(true);
+        setSuccessMessage("You have successfully registered for this event.");
       }
-
-      await loadDetails();
     } catch (err) {
       setActionError(
         err instanceof Error
@@ -126,8 +138,19 @@ export default function EventDetailsClient({ id }: Props) {
     );
   }
 
-  const isMember = user?.role === "MEMBER";
   const isCancelled = event.status === "CANCELLED";
+  const isEnded = new Date(event.endsAt).getTime() <= Date.now();
+
+  // Backend can provide registeredCount in a future update.
+  const registeredCount = event.registeredCount;
+
+  const seatsLeft =
+    typeof registeredCount === "number"
+      ? Math.max(0, event.capacity - registeredCount)
+      : null;
+
+  const isFull =
+    seatsLeft !== null && seatsLeft <= 0 && !isRegistered;
 
   return (
     <PageContainer>
@@ -178,6 +201,15 @@ export default function EventDetailsClient({ id }: Props) {
             </p>
           </div>
 
+          {seatsLeft !== null && (
+            <div>
+              <p className="text-sm text-muted">Seats remaining</p>
+              <p className="mt-1 font-medium text-foreground">
+                {seatsLeft}
+              </p>
+            </div>
+          )}
+
           <div>
             <p className="text-sm text-muted">Starts</p>
             <p className="mt-1 font-medium text-foreground">
@@ -202,6 +234,10 @@ export default function EventDetailsClient({ id }: Props) {
             <p className="mt-3 text-sm font-medium text-red-700">
               Registration is unavailable because this event has been cancelled.
             </p>
+          ) : isEnded ? (
+            <p className="mt-3 text-sm font-medium text-muted">
+              This event has ended. Registration is closed.
+            </p>
           ) : !user ? (
             <div className="mt-4">
               <p className="text-sm text-muted">
@@ -215,7 +251,7 @@ export default function EventDetailsClient({ id }: Props) {
                 Log in to register
               </Link>
             </div>
-          ) : isMember ? (
+          ) : (
             <div className="mt-4">
               <p className="text-sm text-muted">
                 {isRegistered
@@ -223,10 +259,26 @@ export default function EventDetailsClient({ id }: Props) {
                   : "You haven't registered for this event yet."}
               </p>
 
+              {registrationCheckFailed && (
+                <p className="mt-3 text-sm text-amber-700" role="status">
+                  We couldn't check your registration status. Please refresh the page and try again.
+                </p>
+              )}
+
+              {isFull && (
+                <p className="mt-3 text-sm font-medium text-red-700">
+                  This event is full. Registration is unavailable.
+                </p>
+              )}
+
               <button
                 type="button"
                 onClick={handleRegistration}
-                disabled={actionLoading}
+                disabled={
+                  actionLoading ||
+                  registrationCheckFailed ||
+                  isFull
+                }
                 className="mt-4 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {actionLoading
@@ -236,9 +288,11 @@ export default function EventDetailsClient({ id }: Props) {
                     : "Register for Event"}
               </button>
             </div>
-          ) : (
-            <p className="mt-3 text-sm text-muted">
-              Event registration is available to members.
+          )}
+
+          {successMessage && (
+            <p className="mt-4 text-sm font-medium text-green-700" role="status">
+              {successMessage}
             </p>
           )}
 

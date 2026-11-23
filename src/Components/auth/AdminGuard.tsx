@@ -3,43 +3,45 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+
 import { useAuth } from "./AuthContext";
+import LoadingState from "@/Components/common/LoadingState";
+import type { UserRole } from "@/lib/types";
 
 type Props = {
   children: ReactNode;
+  roles?: UserRole[];
 };
 
-export default function AdminGuard({ children }: Props) {
+const DEFAULT_ALLOWED_ROLES: UserRole[] = ["ADMIN", "SUPER_ADMIN"];
+
+export default function AdminGuard({
+  children,
+  roles = DEFAULT_ALLOWED_ROLES,
+}: Props) {
   const { user, loading } = useAuth();
   const router = useRouter();
+
+  const hasPermission = user ? roles.includes(user.role) : false;
 
   useEffect(() => {
     if (loading) return;
 
-    if (!user) {
+    if (!user || user.status !== "ACTIVE") {
       router.replace("/login");
       return;
     }
 
-    if (user.status !== "ACTIVE") {
-      router.replace("/login");
-      return;
-    }
-
-    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
+    if (!hasPermission) {
       router.replace("/");
     }
-  }, [user, loading, router]);
+  }, [user, loading, hasPermission, router]);
 
   if (loading) {
-    return <div>Checking permissions...</div>;
+    return <LoadingState />;
   }
 
-  if (
-    !user ||
-    user.status !== "ACTIVE" ||
-    (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")
-  ) {
+  if (!user || user.status !== "ACTIVE" || !hasPermission) {
     return null;
   }
 

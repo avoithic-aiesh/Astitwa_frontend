@@ -14,6 +14,7 @@ const links = [
 
 export default function Navbar() {
   const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -32,6 +33,8 @@ export default function Navbar() {
     e: MouseEvent<HTMLAnchorElement>,
     href: string
   ) {
+    setMobileOpen(false);
+
     if (pathname !== "/") return;
 
     if (href === "/#about") {
@@ -48,27 +51,33 @@ export default function Navbar() {
   }
 
   async function handleLogout() {
+    setMobileOpen(false);
     await logout();
     router.push("/");
   }
 
-  const roleLinks =
-    user?.role === "MEMBER"
-      ? [...links, { href: "/my-events", label: "My Events" }]
-      : user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
-        ? [...links, { href: "/admin", label: "Admin Dashboard" }]
-        : links;
+  const roleLinks = user
+    ? [
+        ...links,
+        { href: "/my-events", label: "My Events" },
+        ...(user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+          ? [{ href: "/admin", label: "Admin Dashboard" }]
+          : []),
+        { href: "/profile", label: "Profile" },
+      ]
+    : links;
 
   return (
-    <header className="flex items-center justify-between gap-8 border-b border-border bg-surface px-8 py-4">
+    <header className="relative flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-4 md:gap-8 md:px-8">
       <Link
         href="/"
-        className="shrink-0 text-2xl font-extrabold uppercase tracking-[0.25em] text-primary"
+        onClick={() => setMobileOpen(false)}
+        className="shrink-0 text-xl font-extrabold uppercase tracking-[0.2em] text-primary md:text-2xl md:tracking-[0.25em]"
       >
         EVENTRA<span className="text-secondary">.</span>
       </Link>
 
-      <nav className="flex gap-6" aria-label="Main navigation">
+      <nav className="hidden gap-6 md:flex" aria-label="Main navigation">
         {roleLinks.map((link) => (
           <Link
             onClick={(e) => handleNavClick(e, link.href)}
@@ -85,36 +94,17 @@ export default function Navbar() {
         ))}
       </nav>
 
-      <div className="flex shrink-0 items-center gap-3">
-        <button
-          type="button"
-          aria-label="Search"
-          className="whitespace-nowrap rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-white"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <line x1="16.5" y1="16.5" x2="21" y2="21" />
-          </svg>
-        </button>
-
+      <div className="flex shrink-0 items-center gap-2 md:gap-3">
         {!mounted || loading ? null : user ? (
           <>
-            <span className="text-sm text-muted">
+            <span className="hidden text-sm text-muted sm:inline">
               Hi, {user.fullName?.split(" ")[0] ?? "User"}
             </span>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
             >
               Logout
             </button>
@@ -123,20 +113,81 @@ export default function Navbar() {
           <>
             <Link
               href="/login"
-              className="whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              onClick={() => setMobileOpen(false)}
+              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
             >
               Login
             </Link>
 
             <Link
               href="/signup"
-              className="whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              onClick={() => setMobileOpen(false)}
+              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
             >
               Sign Up
             </Link>
           </>
         )}
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen((prev) => !prev)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          className="rounded-lg border border-border p-2 text-primary md:hidden"
+        >
+          {mobileOpen ? (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          ) : (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+            </svg>
+          )}
+        </button>
       </div>
+
+      {mobileOpen && (
+        <nav
+          className="absolute left-0 right-0 top-full z-50 flex flex-col gap-1 border-b border-border bg-surface p-4 shadow-md md:hidden"
+          aria-label="Mobile navigation"
+        >
+          {roleLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
+              className={`rounded-lg px-4 py-3 text-sm transition-colors hover:bg-background hover:text-primary ${
+                isActive(link.href)
+                  ? "font-semibold text-primary"
+                  : "text-muted"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
