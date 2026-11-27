@@ -53,7 +53,19 @@ export default function EventsPage() {
   }, []);
 
   useEffect(() => {
-    void loadEvents();
+    let active = true;
+
+    async function run() {
+      await loadEvents();
+    }
+
+    if (active) {
+      run();
+    }
+
+    return () => {
+      active = false;
+    };
   }, [loadEvents]);
 
   const filteredEvents = events.filter((event) => {
@@ -73,7 +85,10 @@ export default function EventsPage() {
   return (
     <PageContainer>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary">
+          Discover
+        </p>
+        <h1 className="font-display mt-2 text-3xl font-bold text-foreground sm:text-4xl">
           Explore Events
         </h1>
 
@@ -82,7 +97,7 @@ export default function EventsPage() {
         </p>
       </div>
 
-      <div className="mb-8 grid gap-4 rounded-xl border border-border bg-surface p-4 sm:grid-cols-2">
+      <div className="mb-8 grid gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs sm:grid-cols-2">
         <div>
           <label
             htmlFor="event-search"
