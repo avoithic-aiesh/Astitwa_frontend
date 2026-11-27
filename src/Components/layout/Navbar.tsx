@@ -1,53 +1,34 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/Components/auth/AuthContext";
-import { useEffect, useState, type MouseEvent } from "react";
+import PagodaLogo from "@/Components/common/PagodaLogo";
+import { useState, useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => { };
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/events", label: "Events" },
-  { href: "/#about", label: "About" },
 ];
 
 export default function Navbar() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
 
+  const isLanding = pathname === "/";
+
   function isActive(href: string) {
-    if (href.includes("#")) return false;
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
-  }
-
-  function handleNavClick(
-    e: MouseEvent<HTMLAnchorElement>,
-    href: string
-  ) {
-    setMobileOpen(false);
-
-    if (pathname !== "/") return;
-
-    if (href === "/#about") {
-      e.preventDefault();
-      document.getElementById("about")?.scrollIntoView({
-        behavior: "smooth",
-      });
-      window.history.replaceState(null, "", "/#about");
-    } else if (href === "/") {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      window.history.replaceState(null, "", "/");
-    }
   }
 
   async function handleLogout() {
@@ -56,55 +37,79 @@ export default function Navbar() {
     router.push("/");
   }
 
+  // Homepage: no nav bar. Only the logo (left) and Login / Logout (right).
+  if (isLanding) {
+    return (
+      <header className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between px-5 py-5 md:px-10 md:py-6">
+        <Link
+          href="/"
+          aria-label="Eventra home"
+          className="shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-light"
+        >
+          <PagodaLogo variant="dark" size="md" />
+        </Link>
+
+        {!mounted || loading ? null : user ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="min-h-11 cursor-pointer whitespace-nowrap rounded-full border border-gold-light/80 bg-[#1A080E]/60 px-6 text-sm font-semibold text-[#FAF6EE] backdrop-blur-sm transition-colors hover:bg-white/10"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border border-gold-light/85 bg-[#1A080E]/55 px-6 text-sm font-semibold text-[#FAF6EE] backdrop-blur-sm transition-colors hover:bg-white/10"
+          >
+            Login
+          </Link>
+        )}
+      </header>
+    );
+  }
+
+  // All other pages keep the regular navigation bar.
   const roleLinks = user
     ? [
-        ...links,
-        { href: "/my-events", label: "My Events" },
-        ...(user.role === "ADMIN" || user.role === "SUPER_ADMIN"
-          ? [{ href: "/admin", label: "Admin Dashboard" }]
-          : []),
-        { href: "/profile", label: "Profile" },
-      ]
+      ...links,
+      { href: "/my-events", label: "My Events" },
+      ...(user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+        ? [{ href: "/admin", label: "Admin Dashboard" }]
+        : []),
+      { href: "/profile", label: "Profile" },
+    ]
     : links;
 
   return (
-    <header className="relative flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-4 md:gap-8 md:px-8">
-      <Link
-        href="/"
-        onClick={() => setMobileOpen(false)}
-        className="shrink-0 text-xl font-extrabold uppercase tracking-[0.2em] text-primary md:text-2xl md:tracking-[0.25em]"
-      >
-        EVENTRA<span className="text-secondary">.</span>
+    <header className="relative z-30 flex items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur md:gap-8 md:px-8">
+      <Link href="/" onClick={() => setMobileOpen(false)} className="shrink-0">
+        <PagodaLogo variant="light" size="md" />
       </Link>
 
-      <nav className="hidden gap-6 md:flex" aria-label="Main navigation">
+      <nav className="hidden gap-7 md:flex" aria-label="Main navigation">
         {roleLinks.map((link) => (
           <Link
-            onClick={(e) => handleNavClick(e, link.href)}
             key={link.href}
             href={link.href}
-            className={`text-sm transition-colors hover:text-primary ${
-              isActive(link.href)
-                ? "font-semibold text-primary"
-                : "text-muted"
-            }`}
+            className={`text-sm font-medium transition-colors hover:text-primary ${isActive(link.href) ? "font-semibold text-primary" : "text-muted"
+              }`}
           >
             {link.label}
           </Link>
         ))}
       </nav>
 
-      <div className="flex shrink-0 items-center gap-2 md:gap-3">
+      <div className="flex shrink-0 items-center gap-2.5 md:gap-3">
         {!mounted || loading ? null : user ? (
           <>
             <span className="hidden text-sm text-muted sm:inline">
               Hi, {user.fullName?.split(" ")[0] ?? "User"}
             </span>
-
             <button
               type="button"
               onClick={handleLogout}
-              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
+              className="cursor-pointer whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
             >
               Logout
             </button>
@@ -113,16 +118,13 @@ export default function Navbar() {
           <>
             <Link
               href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
+              className="whitespace-nowrap rounded-full border border-primary/25 bg-rose-soft px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-rose-tint"
             >
               Login
             </Link>
-
             <Link
               href="/signup"
-              onClick={() => setMobileOpen(false)}
-              className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
+              className="whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
             >
               Sign Up
             </Link>
@@ -136,34 +138,29 @@ export default function Navbar() {
           aria-expanded={mobileOpen}
           className="rounded-lg border border-border p-2 text-primary md:hidden"
         >
-          {mobileOpen ? (
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          ) : (
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M4 6h16" />
-              <path d="M4 12h16" />
-              <path d="M4 18h16" />
-            </svg>
-          )}
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            {mobileOpen ? (
+              <>
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </>
+            ) : (
+              <>
+                <path d="M4 6h16" />
+                <path d="M4 12h16" />
+                <path d="M4 18h16" />
+              </>
+            )}
+          </svg>
         </button>
       </div>
 
@@ -176,12 +173,9 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              onClick={(e) => handleNavClick(e, link.href)}
-              className={`rounded-lg px-4 py-3 text-sm transition-colors hover:bg-background hover:text-primary ${
-                isActive(link.href)
-                  ? "font-semibold text-primary"
-                  : "text-muted"
-              }`}
+              onClick={() => setMobileOpen(false)}
+              className={`rounded-lg px-4 py-3 text-sm transition-colors hover:bg-rose-soft hover:text-primary ${isActive(link.href) ? "font-semibold text-primary" : "text-muted"
+                }`}
             >
               {link.label}
             </Link>
@@ -191,3 +185,4 @@ export default function Navbar() {
     </header>
   );
 }
+
