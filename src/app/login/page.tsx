@@ -1,13 +1,16 @@
+import type { Metadata } from "next";
+import AuthShell from "@/Components/auth/AuthShell";
 import LoginForm from "@/Components/auth/LoginForm";
+
+export const metadata: Metadata = { title: "Log in | Eventra" };
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
-      <div className="rounded-2xl border border-border bg-white p-10">
-        <h1 className="text-3xl font-bold text-primary">Welcome back</h1>
-        <p className="mb-8 mt-2 text-muted">Log in to manage your events.</p>
-        <LoginForm />
-      </div>
-    </main>
+    <AuthShell
+      title="Welcome back"
+      subtitle="Log in to manage your events and registrations."
+    >
+      <LoginForm />
+    </AuthShell>
   );
 }

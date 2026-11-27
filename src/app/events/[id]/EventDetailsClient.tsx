@@ -76,7 +76,19 @@ export default function EventDetailsClient({ id }: Props) {
   useEffect(() => {
     if (authLoading) return;
 
-    void loadDetails();
+    let active = true;
+
+    async function run() {
+      await loadDetails();
+    }
+
+    if (active) {
+      run();
+    }
+
+    return () => {
+      active = false;
+    };
   }, [authLoading, loadDetails]);
 
   async function handleRegistration() {
@@ -139,7 +151,7 @@ export default function EventDetailsClient({ id }: Props) {
   }
 
   const isCancelled = event.status === "CANCELLED";
-  const isEnded = new Date(event.endsAt).getTime() <= Date.now();
+  const isEnded = new Date(event.endsAt) < new Date(Date.now());
 
   // Backend can provide registeredCount in a future update.
   const registeredCount = event.registeredCount;
@@ -161,14 +173,14 @@ export default function EventDetailsClient({ id }: Props) {
         ← Back to events
       </Link>
 
-      <div className="mt-6 rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+      <div className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-secondary">
-              EVENT DETAILS
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">
+              Event Details
             </p>
 
-            <h1 className="mt-2 text-3xl font-bold text-foreground">
+            <h1 className="font-display mt-2 text-3xl font-bold text-foreground sm:text-4xl">
               {event.title}
             </h1>
           </div>
@@ -256,12 +268,12 @@ export default function EventDetailsClient({ id }: Props) {
               <p className="text-sm text-muted">
                 {isRegistered
                   ? "You are registered for this event."
-                  : "You haven't registered for this event yet."}
+                  : "You have not registered for this event yet."}
               </p>
 
               {registrationCheckFailed && (
                 <p className="mt-3 text-sm text-amber-700" role="status">
-                  We couldn't check your registration status. Please refresh the page and try again.
+                  We could not check your registration status. Please refresh the page and try again.
                 </p>
               )}
 
