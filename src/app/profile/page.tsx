@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from "react";
@@ -18,7 +17,11 @@ export default function ProfilePage() {
   }, [loading, user, router]);
 
   if (loading || !user) {
-    return <LoadingState />;
+    return (
+      <main className="flex-1 bg-background px-4 py-10 md:px-8">
+        <LoadingState />
+      </main>
+    );
   }
 
   const joinedDate = user.createdAt
@@ -35,7 +38,7 @@ export default function ProfilePage() {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 md:px-8">
+    <main className="flex-1 bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <Link
@@ -45,7 +48,7 @@ export default function ProfilePage() {
             ← Back to Home
           </Link>
 
-          <h1 className="mt-5 text-3xl font-bold text-foreground">
+          <h1 className="font-display mt-5 text-3xl font-bold text-foreground">
             My Profile
           </h1>
 
@@ -54,9 +57,9 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        <section className="rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8">
+        <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
           <div className="mb-8 flex items-center gap-4 border-b border-border pb-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-2xl font-bold text-white">
               {user.fullName.charAt(0).toUpperCase()}
             </div>
 
@@ -102,9 +105,9 @@ export default function ProfilePage() {
 
             <div>
               <p className="text-sm text-muted">Account Status</p>
-              <p className="mt-1 font-medium text-foreground">
+              <span className="mt-1 inline-flex rounded-full bg-rose-soft px-3 py-0.5 text-xs font-semibold text-primary">
                 {user.status}
-              </p>
+              </span>
             </div>
           </div>
         </section>
@@ -112,7 +115,7 @@ export default function ProfilePage() {
         <div className="mt-6">
           <Link
             href="/events"
-            className="inline-flex rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="inline-flex rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
           >
             Browse Events
           </Link>

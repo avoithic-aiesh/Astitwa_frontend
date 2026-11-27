@@ -37,8 +37,9 @@ export default function MyEventsPage() {
     if (authLoading) return;
 
     if (!user) {
-      setLoading(false);
-      return;
+      // schedule so we're not calling setState synchronously in the effect body
+      const id = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(id);
     }
 
     let active = true;
@@ -68,7 +69,7 @@ export default function MyEventsPage() {
       }
     }
 
-    void load();
+    load();
 
     return () => {
       active = false;
@@ -130,12 +131,12 @@ export default function MyEventsPage() {
     );
   }
 
-  const now = Date.now();
+  const nowTs = new Date(Date.now());
 
   const upcomingEvents = registrations
     .filter(
       (registration) =>
-        new Date(registration.event.endsAt).getTime() > now
+        new Date(registration.event.endsAt) > nowTs
     )
     .sort(
       (a, b) =>
@@ -146,7 +147,7 @@ export default function MyEventsPage() {
   const pastEvents = registrations
     .filter(
       (registration) =>
-        new Date(registration.event.endsAt).getTime() <= now
+        new Date(registration.event.endsAt) <= nowTs
     )
     .sort(
       (a, b) =>
@@ -221,7 +222,10 @@ export default function MyEventsPage() {
   return (
     <PageContainer>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary">
+          Your Schedule
+        </p>
+        <h1 className="font-display mt-2 text-3xl font-bold text-foreground sm:text-4xl">
           My Events
         </h1>
 
@@ -231,14 +235,14 @@ export default function MyEventsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-6 rounded-xl border border-rose-border bg-rose-soft p-4 text-sm text-primary">
           {error}
         </div>
       )}
 
       <section className="mb-12">
         <div className="mb-5">
-          <h2 className="text-2xl font-bold text-foreground">
+          <h2 className="font-display text-2xl font-bold text-foreground">
             Upcoming Events
           </h2>
           <p className="mt-1 text-sm text-muted">
