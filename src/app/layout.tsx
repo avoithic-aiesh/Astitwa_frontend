@@ -1,24 +1,22 @@
 import { AuthProvider } from "@/components/auth/AuthContext";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
-import Navbar from "../components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// These define the --font-sans and --font-display variables used in globals.css.
+const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const display = Playfair_Display({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
-  title: "Eventra | Event & Social Media Management",
+  title: "Eventra | Events. Culture. Community.",
   description:
-    "A centralized platform to manage events, social media, and organizational collaboration.",
+    "Discover cultural gatherings, concerts, workshops, and community events around you — register in seconds with Eventra.",
 };
 
 export default function RootLayout({
@@ -29,15 +27,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      data-scroll-behavior = "smooth"
+      className={`${sans.variable} ${display.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col bg-background text-foreground">
         <AuthProvider>
           <Suspense fallback={null}>
             <Navbar />
           </Suspense>
+
           {children}
+
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

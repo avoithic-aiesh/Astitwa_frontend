@@ -61,10 +61,12 @@ export function DashboardHeader({
     router.push("/login");
   };
 
-  const displayName = user?.name || mockOrganization.currentAdmin.name;
+  const displayName =
+    (user && "fullName" in user ? (user as { fullName?: string }).fullName : undefined) ||
+    mockOrganization.currentAdmin.name;
   const userInitials = displayName
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();

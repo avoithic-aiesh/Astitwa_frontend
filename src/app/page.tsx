@@ -1,178 +1,241 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
-const orbit = [
-  { label: "Events", pos: "left-[40%] top-0" },
-  { label: "Scheduling", pos: "right-0 top-[24%]" },
-  { label: "Members", pos: "right-0 bottom-[24%]" },
-  { label: "Social Media", pos: "left-[32%] bottom-0" },
-  { label: "Updates", pos: "left-0 bottom-[24%]" },
-  { label: "Teams", pos: "left-0 top-[24%]" },
-];
+import { useAuth } from "@/components/auth/AuthContext";
+import { PagodaIcon } from "@/components/common/PagodaLogo";
+import StoryCarousel from "@/components/landing/StoryCarousel";
+import EventCard from "@/components/events/EventCard";
+import LoadingState from "@/components/common/LoadingState";
+import ErrorState from "@/components/common/ErrorState";
+import EmptyState from "@/components/common/EmptyState";
 
-const posts = [
-  { title: "Event announcement", status: "Scheduled" },
-  { title: "Speaker highlight", status: "Draft" },
-  { title: "Registration reminder", status: "Posted" },
-];
-
-const pillars = [
-  {
-    title: "Event management",
-    text: "Plan, schedule and keep every detail of your events in one place.",
-  },
-  {
-    title: "Social media",
-    text: "Prepare and organize the posts that promote your events and your community.",
-  },
-  {
-    title: "Team collaboration",
-    text: "Keep members, organizers and volunteers working from the same page.",
-  },
-];
+import { getEvents } from "@/lib/events";
+import { isUpcoming } from "@/lib/format";
+import type { Event } from "@/lib/types";
 
 export default function Home() {
+  const { user, loading: authLoading } = useAuth();
+
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchUpcomingEvents = useCallback(async () => {
+    const data = await getEvents();
+
+    return data
+      .filter(
+        (event) =>
+          event.status === "PUBLISHED" && isUpcoming(event.startsAt)
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+      )
+      .slice(0, 3);
+  }, []);
+
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      setEvents(await fetchUpcomingEvents());
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to load upcoming events."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchUpcomingEvents]);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchUpcomingEvents()
+      .then((upcomingEvents) => {
+        if (active) setEvents(upcomingEvents);
+      })
+      .catch((err) => {
+        if (active) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load upcoming events."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [fetchUpcomingEvents]);
+
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="relative isolate overflow-hidden">
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#16050A] px-6 pb-20 pt-28 text-center text-[#FAF6EE]">
+        <Image
+          src="/images/hero-festival.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-35"
+        />
         <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(182,146,82,0.2),transparent_65%)]"
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_80%,rgba(184,74,46,0.42)_0%,rgba(107,29,47,0.78)_38%,rgba(22,5,10,0.95)_85%)]"
         />
 
-        <div className="mx-auto max-w-6xl px-6 pb-20 pt-16 text-center md:pt-24">
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight text-foreground md:text-6xl">
-            Run every event with a{" "}
-            <span className="text-primary">smarter platform</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-            Plan events, manage your social media, and collaborate with your whole
-            organization, all from one place.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-opacity hover:opacity-90"
-            >
-              Get Started
-            </Link>
+        <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6">
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-gold-light/35 bg-[#2A0A13]/75 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-gold-light backdrop-blur-sm">
+            <PagodaIcon variant="dark" size={20} />
+            <span>Events · Culture · Community</span>
           </div>
 
-          {/* Feature cards */}
-          <div className="mt-16 grid items-center gap-6 text-left md:grid-cols-3">
-            <article className="overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-xl md:[transform:perspective(1200px)_rotateY(-14deg)_scale(0.94)]">
-              <h2 className="text-lg font-semibold text-foreground">
-                Seamless team collaboration
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Coordinate tasks and updates with your team.
-              </p>
-              <div className="mt-5 space-y-3">
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-background px-3 py-2 text-xs text-foreground">
-                  The schedule has been updated.
-                </div>
-                <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-xs text-white">
-                  Got it. I will share the poster today.
-                </div>
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-background px-3 py-2 text-xs text-foreground">
-                  The venue is confirmed.
-                </div>
-              </div>
-            </article>
+          <h1 className="font-display m-0 bg-gradient-to-b from-[#FAF6EE] via-[#F5E2E4] to-[#E6C987] bg-clip-text text-6xl font-black uppercase leading-none tracking-[0.06em] text-transparent drop-shadow-[0_8px_32px_rgba(184,74,46,0.35)] sm:text-8xl lg:text-[7.5rem]">
+            EVENTRA
+          </h1>
 
-            <article className="overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-2xl md:scale-105">
-              <h2 className="text-lg font-semibold text-foreground">
-                All-in-one event management
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Everything your organization needs in one simple platform.
-              </p>
-              <div className="relative mx-auto mt-6 h-64 max-w-xs">
-                <div className="absolute inset-x-4 inset-y-6 rounded-[50%] border border-border" />
-                <div className="absolute inset-x-4 inset-y-6 rotate-[60deg] rounded-[50%] border border-border" />
-                <div className="absolute inset-x-4 inset-y-6 -rotate-[60deg] rounded-[50%] border border-border" />
-                {orbit.map((o) => (
-                  <span
-                    key={o.label}
-                    className={`absolute rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted shadow-sm ${o.pos}`}
-                  >
-                    {o.label}
-                  </span>
-                ))}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                  <p className="text-lg font-extrabold uppercase tracking-[0.2em] text-primary">
-                    Eventra<span className="text-secondary">.</span>
-                  </p>
-                </div>
-              </div>
-            </article>
-
-            <article className="overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-xl md:[transform:perspective(1200px)_rotateY(14deg)_scale(0.94)]">
-              <h2 className="text-lg font-semibold text-foreground">
-                Social media, organized
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Keep every post for your events in one place.
-              </p>
-              <div className="mt-5 space-y-3">
-                {posts.map((p, i) => (
-                  <div
-                    key={p.title}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
-                  >
-                    <div
-                      className={`h-10 w-10 shrink-0 rounded-lg ${
-                        i === 1 ? "bg-secondary" : "bg-primary"
-                      }`}
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-foreground">
-                        {p.title}
-                      </p>
-                      <p className="text-xs text-muted">{p.status}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
+            {authLoading ? null : !user ? (
+              <Link
+                href="/signup"
+                className="inline-flex min-h-12 items-center rounded-full border border-gold bg-[#18060C]/90 px-8 text-sm font-bold text-white shadow-[0_0_26px_rgba(193,154,60,0.38)] transition-colors hover:bg-primary"
+              >
+                Get Started
+              </Link>
+            ) : isAdmin ? (
+              <Link
+                href="/admin"
+                className="inline-flex min-h-12 items-center rounded-full bg-secondary px-8 text-sm font-bold text-white shadow-md transition-colors hover:bg-secondary-hover"
+              >
+                Admin Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/my-events"
+                className="inline-flex min-h-12 items-center rounded-full bg-secondary px-8 text-sm font-bold text-white shadow-md transition-colors hover:bg-secondary-hover"
+              >
+                My Events
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
-      {/* About */}
-      <section id="about" className="scroll-mt-20 border-t border-border bg-surface">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-2">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-secondary">
-              About
+      {/* Upcoming Events — highlighted frame, same style as the story carousel */}
+      <section id="upcoming" className="relative px-4 py-10 sm:px-6 lg:px-10">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] border border-[#5D2937] bg-[radial-gradient(ellipse_at_50%_100%,#7A2438_0%,#3D121E_45%,#18060C_100%)] text-[#FAF6EE] shadow-2xl">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#B84A2E]/25 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-[#E6C987]/10 blur-3xl"
+          />
+
+          <div className="relative flex flex-col gap-10 px-6 py-14 sm:px-10 lg:px-14">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-light">
+                Explore
+              </p>
+              <h2 className="font-display mt-2 text-3xl font-bold text-[#FAF6EE] sm:text-5xl">
+                Upcoming Events
+              </h2>
+              <p className="mt-2 text-[#DFC8CB]">
+                Find an event that inspires you and be part of it.
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="rounded-2xl bg-surface p-6 text-foreground">
+                <LoadingState message="Loading upcoming events..." />
+              </div>
+            ) : error ? (
+              <div className="rounded-2xl bg-surface p-6 text-foreground">
+                <ErrorState message={error} onRetry={loadEvents} />
+              </div>
+            ) : events.length === 0 ? (
+              <div className="rounded-2xl bg-surface p-6 text-foreground">
+                <EmptyState
+                  title="No upcoming events"
+                  message="There are no upcoming published events right now. Please check back later."
+                />
+              </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {events.map((event, index) => (
+                  <EventCard key={event.id} event={event} photoIndex={index} />
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-center pt-2">
+              <Link
+                href="/events"
+                className="inline-flex min-h-12 items-center rounded-full border border-gold bg-[#18060C]/90 px-8 text-sm font-bold text-white shadow-[0_0_26px_rgba(193,154,60,0.35)] transition-colors hover:bg-primary"
+              >
+                Explore All Events
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <StoryCarousel />
+
+      {/* Choose Your Adventure */}
+      <section className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-20 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="flex flex-col items-start gap-4 rounded-3xl border border-border bg-surface p-8 shadow-sm transition-shadow hover:shadow-md">
+            <span className="rounded-full bg-rose-tint px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+              Community
+            </span>
+            <h3 className="font-display text-2xl font-bold text-foreground">
+              For attendees
+            </h3>
+            <p className="leading-relaxed text-muted">
+              Browse upcoming events, reserve your seat in seconds, and keep
+              track of everything you have joined.
             </p>
-            <h2 className="mt-3 text-3xl font-bold text-primary md:text-4xl">
-              About Eventra
-            </h2>
-            <p className="mt-5 leading-relaxed text-muted">
-              Eventra is a centralized platform to manage events, social media, and
-              organizational collaboration. Instead of juggling spreadsheets, chat
-              groups and separate tools, your team works in one place.
-            </p>
-            <p className="mt-4 leading-relaxed text-muted">
-              Your events. Your community. Your identity.
-            </p>
+            <Link
+              href={user ? "/my-events" : "/signup"}
+              className="mt-2 inline-flex min-h-11 items-center rounded-full bg-primary px-7 text-sm font-bold text-white transition-colors hover:bg-primary-hover"
+            >
+              {user ? "My Events" : "Get Started"}
+            </Link>
           </div>
 
-          <ul className="space-y-5">
-            {pillars.map((p, i) => (
-              <li key={p.title} className="flex gap-4 rounded-xl border border-border bg-background p-5">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 className="font-semibold text-foreground">{p.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted">{p.text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col items-start gap-4 rounded-3xl border border-rose-border bg-rose-soft p-8 shadow-sm transition-shadow hover:shadow-md">
+            <span className="rounded-full bg-secondary/15 px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-secondary">
+              Hosts &amp; Teams
+            </span>
+            <h3 className="font-display text-2xl font-bold text-foreground">
+              For organizers
+            </h3>
+            <p className="leading-relaxed text-muted">
+              Publish events, manage participant registrations, and keep track
+              of attendance with ease.
+            </p>
+            <Link
+              href={isAdmin ? "/admin" : "/login"}
+              className="mt-2 inline-flex min-h-11 items-center rounded-full bg-secondary px-7 text-sm font-bold text-white transition-colors hover:bg-secondary-hover"
+            >
+              {isAdmin ? "Open Dashboard" : "Login"}
+            </Link>
+          </div>
         </div>
       </section>
     </main>

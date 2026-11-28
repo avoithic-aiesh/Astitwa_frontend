@@ -1,18 +1,29 @@
-
 @import "tailwindcss";
 
-/* Astitva Design System */
+/* Eventra Unified Design System — Burgundy, Burnt Rust, Ivory, Rose Tint & Gold */
 
 :root {
-  --background: #F8F5EE;
-  --foreground: #292524;
+  --background: #faf6ee;
+  --foreground: #231819;
 
-  --primary: #702832;
-  --secondary: #B69252;
+  --primary: #6b1d2f;
+  --primary-hover: #541524;
+  --secondary: #b84a2e;
+  --secondary-hover: #993b23;
 
-  --surface: #FFFFFF;
-  --muted: #78716C;
-  --border: #E8E1D7;
+  --surface: #fffdf9;
+  --muted: #665355;
+  --border: #e6d7cf;
+
+  --burgundy-deep: #2a0a13;
+  --burgundy-night: #140509;
+  --burnt-rust: #b84a2e;
+  --rose-tint: #f5e2e4;
+  --rose-soft: #fdf4f5;
+  --rose-border: #e6c6cb;
+  --gold: #c19a3c;
+  --gold-light: #e6c987;
+  --gold-text: #8c6a22;
 }
 
 @theme inline {
@@ -20,12 +31,23 @@
   --color-foreground: var(--foreground);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+
   --color-surface: var(--surface);
   --color-muted: var(--muted);
   --color-border: var(--border);
 
-  --font-sans: Arial, Helvetica, sans-serif;
+  --color-burgundy-deep: var(--burgundy-deep);
+  --color-burgundy-night: var(--burgundy-night);
+  --color-burnt-rust: var(--burnt-rust);
+  --color-rose-tint: var(--rose-tint);
+  --color-rose-soft: var(--rose-soft);
+  --color-rose-border: var(--rose-border);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-text: var(--gold-text);
 }
 
 * {
@@ -34,11 +56,16 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   margin: 0;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
