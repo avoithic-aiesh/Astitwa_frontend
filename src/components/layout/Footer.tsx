@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import PagodaLogo from "@/Components/common/PagodaLogo";
+import { usePathname } from "next/navigation";
+import PagodaLogo from "@/components/common/PagodaLogo";
 
 const linkClass = "w-fit text-[#EADCD6] transition-colors hover:text-white";
 const headingClass =
@@ -8,6 +11,13 @@ const socialClass =
   "flex h-11 w-11 items-center justify-center rounded-full border border-[#EADCD6]/60 text-sm font-bold text-[#EADCD6] transition-colors hover:border-white hover:text-white";
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on dashboard pages
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-[#4B1A28] bg-burgundy-deep text-[#F1E5DF]">
       <div className="mx-auto flex max-w-6xl flex-col gap-11 px-6 py-16 lg:px-8">
@@ -21,7 +31,6 @@ export default function Footer() {
               connected with your community.
             </p>
             <div className="flex gap-2.5">
-              {/* TODO: replace each # with your real social profile URL */}
               <a href="#" aria-label="Facebook" className={socialClass}>
                 f
               </a>

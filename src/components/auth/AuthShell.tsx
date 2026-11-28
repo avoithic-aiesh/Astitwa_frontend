@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import PagodaLogo from "@/Components/common/PagodaLogo";
+import PagodaLogo from "@/components/common/PagodaLogo";
 
 type Props = { title: string; subtitle: string; children: ReactNode };
 

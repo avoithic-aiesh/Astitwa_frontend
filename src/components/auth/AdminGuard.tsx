@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "./AuthContext";
-import LoadingState from "@/Components/common/LoadingState";
+import LoadingState from "@/components/common/LoadingState";
 import type { UserRole } from "@/lib/types";
 
 type Props = {

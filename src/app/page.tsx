@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { useAuth } from "@/Components/auth/AuthContext";
-import { PagodaIcon } from "@/Components/common/PagodaLogo";
-import StoryCarousel from "@/Components/landing/StoryCarousel";
-import EventCard from "@/Components/events/EventCard";
-import LoadingState from "@/Components/common/LoadingState";
-import ErrorState from "@/Components/common/ErrorState";
-import EmptyState from "@/Components/common/EmptyState";
+import { useAuth } from "@/components/auth/AuthContext";
+import { PagodaIcon } from "@/components/common/PagodaLogo";
+import StoryCarousel from "@/components/landing/StoryCarousel";
+import EventCard from "@/components/events/EventCard";
+import LoadingState from "@/components/common/LoadingState";
+import ErrorState from "@/components/common/ErrorState";
+import EmptyState from "@/components/common/EmptyState";
 
 import { getEvents } from "@/lib/events";
 import { isUpcoming } from "@/lib/format";

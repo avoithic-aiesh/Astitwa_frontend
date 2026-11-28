@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import Field from "./Field";
-import { useAuth } from "@/Components/auth/AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 
 export default function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -3,15 +3,14 @@
 
 import { useRouter } from "next/navigation";
 
-import AdminGuard from "@/Components/auth/AdminGuard";
-import EventForm from "@/Components/events/EventForm";
-import PageContainer from "@/Components/common/PageContainer";
-import type { Event } from "@/lib/types";
+import AdminGuard from "@/components/auth/AdminGuard";
+import EventForm from "@/components/events/EventForm";
+import PageContainer from "@/components/common/PageContainer";
 
 export default function NewEventPage() {
   const router = useRouter();
 
-  function handleSuccess(_event: Event) {
+  function handleSuccess() {
     router.push("/admin?created=true");
   }
 

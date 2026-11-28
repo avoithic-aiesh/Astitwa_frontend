@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/Components/auth/AuthContext";
-import AdminGuard from "@/Components/auth/AdminGuard";
-import PageContainer from "@/Components/common/PageContainer";
+import { useAuth } from "@/components/auth/AuthContext";
+import AdminGuard from "@/components/auth/AdminGuard";
+import PageContainer from "@/components/common/PageContainer";
 
 export default function AdminPage() {
   const { user, logout } = useAuth();

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import AuthShell from "../../Components/auth/AuthShell";
-import SignupForm from "../../Components/auth/SignupForm";
+import AuthShell from "../../components/auth/AuthShell";
+import SignupForm from "../../components/auth/SignupForm";
 
 export const metadata: Metadata = { title: "Sign up | Eventra" };
 

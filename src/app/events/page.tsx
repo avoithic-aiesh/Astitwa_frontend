@@ -3,11 +3,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import EventCard from "@/Components/events/EventCard";
-import LoadingState from "@/Components/common/LoadingState";
-import ErrorState from "@/Components/common/ErrorState";
-import EmptyState from "@/Components/common/EmptyState";
-import PageContainer from "@/Components/common/PageContainer";
+import EventCard from "@/components/events/EventCard";
+import LoadingState from "@/components/common/LoadingState";
+import ErrorState from "@/components/common/ErrorState";
+import EmptyState from "@/components/common/EmptyState";
+import PageContainer from "@/components/common/PageContainer";
 
 import { getEvents } from "@/lib/events";
 import type { Event } from "@/lib/types";

@@ -4,11 +4,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import AdminGuard from "@/Components/auth/AdminGuard";
-import EventForm from "@/Components/events/EventForm";
-import PageContainer from "@/Components/common/PageContainer";
-import LoadingState from "@/Components/common/LoadingState";
-import ErrorState from "@/Components/common/ErrorState";
+import AdminGuard from "@/components/auth/AdminGuard";
+import EventForm from "@/components/events/EventForm";
+import PageContainer from "@/components/common/PageContainer";
+import LoadingState from "@/components/common/LoadingState";
+import ErrorState from "@/components/common/ErrorState";
 
 import { getEvent } from "@/lib/events";
 import type { Event } from "@/lib/types";
@@ -45,7 +45,7 @@ function EditEventContent() {
     }
   }, [params.id]);
 
-  function handleSuccess(_updatedEvent: Event) {
+  function handleSuccess() {
     router.push("/admin?updated=true");
   }
 

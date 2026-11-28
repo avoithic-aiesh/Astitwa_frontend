@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/Components/auth/AuthContext";
-import LoadingState from "@/Components/common/LoadingState";
+import { useAuth } from "@/components/auth/AuthContext";
+import LoadingState from "@/components/common/LoadingState";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();

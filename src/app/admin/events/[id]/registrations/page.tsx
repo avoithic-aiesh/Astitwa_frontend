@@ -4,10 +4,10 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import AdminGuard from "@/Components/auth/AdminGuard";
-import PageContainer from "@/Components/common/PageContainer";
-import LoadingState from "@/Components/common/LoadingState";
-import ErrorState from "@/Components/common/ErrorState";
+import AdminGuard from "@/components/auth/AdminGuard";
+import PageContainer from "@/components/common/PageContainer";
+import LoadingState from "@/components/common/LoadingState";
+import ErrorState from "@/components/common/ErrorState";
 
 import { getEventRegistrations } from "@/lib/admin";
 import { getEvent } from "@/lib/events";

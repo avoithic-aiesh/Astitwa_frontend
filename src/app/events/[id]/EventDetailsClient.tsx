@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { useAuth } from "@/Components/auth/AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 
 import {
   getEvent,
@@ -16,9 +16,9 @@ import {
 import { formatDateTime } from "@/lib/format";
 import type { Event } from "@/lib/types";
 
-import StatusBadge from "@/Components/events/StatusBadge";
-import LoadingState from "@/Components/common/LoadingState";
-import PageContainer from "@/Components/common/PageContainer";
+import StatusBadge from "@/components/events/StatusBadge";
+import LoadingState from "@/components/common/LoadingState";
+import PageContainer from "@/components/common/PageContainer";
 
 type Props = {
   id: string;

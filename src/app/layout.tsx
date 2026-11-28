@@ -1,10 +1,10 @@
-import { AuthProvider } from "@/Components/auth/AuthContext";
+import { AuthProvider } from "@/components/auth/AuthContext";
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
-import Navbar from "../Components/layout/Navbar";
-import Footer from "../Components/layout/Footer";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 // These define the --font-sans and --font-display variables used in globals.css.
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -38,7 +38,9 @@ export default function RootLayout({
 
           {children}
 
-          <Footer />
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

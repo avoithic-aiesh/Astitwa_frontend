@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/Components/auth/AuthContext";
-import PagodaLogo from "@/Components/common/PagodaLogo";
-import { useState, useSyncExternalStore } from "react";
+import { useAuth } from "@/components/auth/AuthContext";
+import PagodaLogo from "@/components/common/PagodaLogo";
+import { useState, useSyncExternalStore, Suspense } from "react";
 
-const emptySubscribe = () => () => { };
+const emptySubscribe = () => () => {};
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/events", label: "Events" },
 ];
 
-export default function Navbar() {
+function NavbarContent() {
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -24,6 +24,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+
+  // Hide on dashboard pages so dashboard has full sidebar layout
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
 
   const isLanding = pathname === "/";
 
@@ -72,13 +77,13 @@ export default function Navbar() {
   // All other pages keep the regular navigation bar.
   const roleLinks = user
     ? [
-      ...links,
-      { href: "/my-events", label: "My Events" },
-      ...(user.role === "ADMIN" || user.role === "SUPER_ADMIN"
-        ? [{ href: "/admin", label: "Admin Dashboard" }]
-        : []),
-      { href: "/profile", label: "Profile" },
-    ]
+        ...links,
+        { href: "/my-events", label: "My Events" },
+        ...(user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+          ? [{ href: "/admin", label: "Admin Dashboard" }]
+          : []),
+        { href: "/profile", label: "Profile" },
+      ]
     : links;
 
   return (
@@ -92,8 +97,9 @@ export default function Navbar() {
           <Link
             key={link.href}
             href={link.href}
-            className={`text-sm font-medium transition-colors hover:text-primary ${isActive(link.href) ? "font-semibold text-primary" : "text-muted"
-              }`}
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isActive(link.href) ? "font-semibold text-primary" : "text-muted"
+            }`}
           >
             {link.label}
           </Link>
@@ -174,8 +180,9 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className={`rounded-lg px-4 py-3 text-sm transition-colors hover:bg-rose-soft hover:text-primary ${isActive(link.href) ? "font-semibold text-primary" : "text-muted"
-                }`}
+              className={`rounded-lg px-4 py-3 text-sm transition-colors hover:bg-rose-soft hover:text-primary ${
+                isActive(link.href) ? "font-semibold text-primary" : "text-muted"
+              }`}
             >
               {link.label}
             </Link>
@@ -186,3 +193,10 @@ export default function Navbar() {
   );
 }
 
+export default function Navbar() {
+  return (
+    <Suspense fallback={null}>
+      <NavbarContent />
+    </Suspense>
+  );
+}

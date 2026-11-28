@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { useAuth } from "@/Components/auth/AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 import {
   getMyRegistrations,
   cancelRegistration,
@@ -13,10 +13,10 @@ import { formatDateTime } from "@/lib/format";
 
 import type { Registration } from "@/lib/types";
 
-import LoadingState from "@/Components/common/LoadingState";
-import EmptyState from "@/Components/common/EmptyState";
-import PageContainer from "@/Components/common/PageContainer";
-import StatusBadge from "@/Components/events/StatusBadge";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import PageContainer from "@/components/common/PageContainer";
+import StatusBadge from "@/components/events/StatusBadge";
 
 export default function MyEventsPage() {
   const { user, loading: authLoading } = useAuth();
