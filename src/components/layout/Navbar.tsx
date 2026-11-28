@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthContext";
-import { useState, type MouseEvent } from "react";
+import { Suspense, type MouseEvent } from "react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -11,10 +11,14 @@ const links = [
   { href: "/#about", label: "About" },
 ];
 
-export default function Navbar() {
+function NavbarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
 
   function isActive(href: string) {
     if (href.includes("#")) return false;
@@ -105,5 +109,13 @@ function handleNavClick(e: MouseEvent<HTMLAnchorElement>, href: string) {
         )}
       </div>
     </header>
+  );
+}
+
+export default function Navbar() {
+  return (
+    <Suspense fallback={null}>
+      <NavbarContent />
+    </Suspense>
   );
 }
