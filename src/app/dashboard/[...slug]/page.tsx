@@ -1,4 +1,10 @@
 import { Suspense } from "react";
+import { ContentApprovalSegment } from "@/components/dashboard/segments/ContentApprovalSegment";
+import { TaskManagementSegment } from "@/components/dashboard/segments/TaskManagementSegment";
+import { EventManagementSegment } from "@/components/dashboard/segments/EventManagementSegment";
+import { PostSchedulingSegment } from "@/components/dashboard/segments/PostSchedulingSegment";
+import { AnalyticsSegment } from "@/components/dashboard/segments/AnalyticsSegment";
+import { GenericSegmentView } from "@/components/dashboard/segments/GenericSegmentView";
 
 interface SlugPageProps {
   params: Promise<{
@@ -8,32 +14,38 @@ interface SlugPageProps {
 
 async function SectionContent({ params }: SlugPageProps) {
   const { slug } = await params;
+  const mainSegment = slug[0] || "";
+  const subpath = slug.slice(1).join("/");
   const currentPath = `/dashboard/${slug.join("/")}`;
   const sectionName = slug
     .map((s) => s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()))
     .join(" › ");
 
-  return (
-    <div className="rounded-2xl border border-[#E8E1D7] bg-white p-8 shadow-xs">
-      <div className="text-xs font-semibold uppercase tracking-wider text-[#B69252]">
-        Navigation Active
-      </div>
-      <h1 className="mt-1 font-serif text-3xl font-bold text-[#702832]">
-        {sectionName}
-      </h1>
-      <p className="mt-2 text-sm text-[#78716C]">
-        Route: <code className="rounded bg-stone-100 px-2 py-0.5 text-stone-800">{currentPath}</code>
-      </p>
-      <p className="mt-4 text-sm text-[#78716C]">
-        The sidebar item corresponding to this route is highlighted on the left with active styling.
-      </p>
-    </div>
-  );
+  switch (mainSegment) {
+    case "content-approval":
+      return <ContentApprovalSegment />;
+    case "task-management":
+      return <TaskManagementSegment />;
+    case "events":
+      return <EventManagementSegment subpath={subpath} />;
+    case "post-scheduling":
+      return <PostSchedulingSegment />;
+    case "analytics":
+      return <AnalyticsSegment />;
+    default:
+      return (
+        <GenericSegmentView
+          segmentKey={mainSegment}
+          title={sectionName}
+          path={currentPath}
+        />
+      );
+  }
 }
 
 export default function DashboardSectionPage(props: SlugPageProps) {
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1600px] mx-auto">
       <Suspense
         fallback={
           <div className="rounded-2xl border border-[#E8E1D7] bg-white p-8 shadow-xs animate-pulse">

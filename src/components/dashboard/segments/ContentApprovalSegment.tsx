@@ -8,9 +8,6 @@ import {
   AlertCircleIcon,
   InstagramIcon,
   FacebookIcon,
-  CalendarDaysIcon,
-  ChevronRightIcon,
-  SparklesIcon,
 } from "@/components/dashboard/icons/AdminIcons";
 
 interface ApprovalPost {
