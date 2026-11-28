@@ -1,0 +1,120 @@
+import {
+  DashboardIcon,
+  EventManagementIcon,
+  CalendarIcon,
+  IdeasIcon,
+  PostSchedulingIcon,
+  ContentApprovalIcon,
+  TaskManagementIcon,
+  AnalyticsIcon,
+  ContentOrganizationIcon,
+  UserManagementIcon,
+  NotificationsIcon,
+  SettingsIcon,
+  SubmenuBulletIcon,
+} from "./icons/SidebarIcons";
+import type { NavItem } from "@/types/navigation";
+
+export const SIDEBAR_NAV_ITEMS: NavItem[] = [
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: DashboardIcon,
+  },
+  {
+    id: "event-management",
+    title: "Event Management",
+    href: "/dashboard/events",
+    icon: EventManagementIcon,
+    isExpandable: true,
+    children: [
+      {
+        id: "all-events",
+        title: "All Events",
+        href: "/dashboard/events",
+        icon: SubmenuBulletIcon,
+      },
+      {
+        id: "create-event",
+        title: "Create Event",
+        href: "/dashboard/events/create",
+        icon: SubmenuBulletIcon,
+      },
+      {
+        id: "event-registrations",
+        title: "Event Registrations",
+        href: "/dashboard/events/registrations",
+        icon: SubmenuBulletIcon,
+      },
+      {
+        id: "event-results",
+        title: "Event Results",
+        href: "/dashboard/events/results",
+        icon: SubmenuBulletIcon,
+      },
+    ],
+  },
+  {
+    id: "content-calendar",
+    title: "Content Calendar",
+    href: "/dashboard/content-calendar",
+    icon: CalendarIcon,
+  },
+  {
+    id: "content-ideas",
+    title: "Content Ideas",
+    href: "/dashboard/content-ideas",
+    icon: IdeasIcon,
+  },
+  {
+    id: "post-scheduling",
+    title: "Post Scheduling",
+    href: "/dashboard/post-scheduling",
+    icon: PostSchedulingIcon,
+  },
+  {
+    id: "content-approval",
+    title: "Content Approval",
+    href: "/dashboard/content-approval",
+    icon: ContentApprovalIcon,
+    badge: 3,
+  },
+  {
+    id: "task-management",
+    title: "Task Management",
+    href: "/dashboard/task-management",
+    icon: TaskManagementIcon,
+  },
+  {
+    id: "analytics",
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: AnalyticsIcon,
+  },
+  {
+    id: "content-organization",
+    title: "Content Organization",
+    href: "/dashboard/content-organization",
+    icon: ContentOrganizationIcon,
+  },
+  {
+    id: "user-management",
+    title: "User Management",
+    href: "/dashboard/user-management",
+    icon: UserManagementIcon,
+  },
+  {
+    id: "notifications",
+    title: "Notifications",
+    href: "/dashboard/notifications",
+    icon: NotificationsIcon,
+    badge: 5,
+  },
+  {
+    id: "settings",
+    title: "Settings",
+    href: "/dashboard/settings",
+    icon: SettingsIcon,
+  },
+];
